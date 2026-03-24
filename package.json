@@ -1,0 +1,25 @@
+{
+  "name": "lineage-code-mini",
+  "version": "0.1.0",
+  "description": "Lightweight cognitive personalization engine — patterns, fitness, compactification",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "test": "node --test dist/**/*.test.js",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": ["ai", "personalization", "cognitive", "patterns", "lineage"],
+  "author": "Vektra Technologies",
+  "license": "MIT",
+  "devDependencies": {
+    "typescript": "^5.9.0"
+  }
+}
