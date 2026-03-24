@@ -2,9 +2,11 @@
  * COMPACTIFY — Experience Compression
  *
  * Inspired by Lineage Engine's compactification layer.
- * Old experiences become statistical summaries that shape future behavior.
+ * Raw interactions become statistical summaries that shape agent behavior.
  *
- * Raw interactions → UserProfile
+ * An agent that talked to a user 500 times doesn't replay 500 conversations.
+ * It reads a profile: "This user prefers direct answers, engages most with
+ * code topics, ignores long explanations, and is most responsive at 10am."
  *
  * "The mind doesn't remember every detail.
  *  It remembers what mattered."
@@ -22,13 +24,8 @@ const DEFAULT_STOPS = new Set([
   "which", "where", "than", "then", "also", "very", "more", "most",
   "need", "want", "like", "make", "take", "come", "put", "back",
   "into", "over", "after", "before", "down", "off", "through",
+  "please", "thanks", "thank", "okay", "yes", "no", "hey", "hi",
 ]);
-
-const DEFAULT_CONCRETE = [
-  "write", "send", "call", "fix", "build", "finish", "submit",
-  "reply", "deploy", "push", "create", "update", "delete", "review",
-  "schedule", "book", "pay", "order", "clean", "organize",
-];
 
 /** Extract meaningful keywords from text */
 export function extractKeywords(text: string, stops?: Set<string>): string[] {
@@ -67,34 +64,70 @@ export function mostActiveHour(timestamps: string[]): number | null {
   return hours[best] > 0 ? best : null;
 }
 
-/** Find the hour with the highest completion rate (min 2 samples) */
+/** Find the hour with the highest acceptance rate (min 2 samples) */
 export function mostProductiveHour(
-  interactions: Pick<Interaction, "created_at" | "completed">[]
+  interactions: Pick<Interaction, "created_at" | "accepted">[]
 ): number | null {
   const total = new Array(24).fill(0);
-  const completed = new Array(24).fill(0);
+  const accepted = new Array(24).fill(0);
   for (const i of interactions) {
     const h = new Date(i.created_at).getHours();
     if (isNaN(h)) continue;
     total[h]++;
-    if (i.completed) completed[h]++;
+    if (i.accepted) accepted[h]++;
   }
   let bestHour = -1;
   let bestRate = -1;
   for (let h = 0; h < 24; h++) {
     if (total[h] >= 2) {
-      const rate = completed[h] / total[h];
+      const rate = accepted[h] / total[h];
       if (rate > bestRate) { bestRate = rate; bestHour = h; }
     }
   }
   return bestHour >= 0 ? bestHour : null;
 }
 
+/** Detect preferred response style from accepted interactions */
+function detectStyle(
+  accepted: Interaction[],
+  rejected: Interaction[]
+): "direct" | "detailed" | "casual" | "formal" {
+  // Measure average output length of accepted vs rejected
+  const acceptedAvgLen = accepted.length > 0
+    ? accepted.reduce((sum, i) => sum + i.output.length, 0) / accepted.length
+    : 0;
+  const rejectedAvgLen = rejected.length > 0
+    ? rejected.reduce((sum, i) => sum + i.output.length, 0) / rejected.length
+    : 0;
+
+  // If accepted responses are significantly shorter than rejected ones,
+  // user prefers direct/short answers
+  const prefersShort = acceptedAvgLen > 0 && rejectedAvgLen > 0
+    && acceptedAvgLen < rejectedAvgLen * 0.7;
+
+  // Check for casual markers in accepted outputs
+  const casualMarkers = ["hey", "haha", "lol", "yeah", "nah", "cool", "btw"];
+  const formalMarkers = ["furthermore", "regarding", "pursuant", "accordingly"];
+
+  let casualScore = 0;
+  let formalScore = 0;
+  for (const i of accepted) {
+    const lower = i.output.toLowerCase();
+    casualMarkers.forEach((m) => { if (lower.includes(m)) casualScore++; });
+    formalMarkers.forEach((m) => { if (lower.includes(m)) formalScore++; });
+  }
+
+  if (prefersShort) return "direct";
+  if (formalScore > casualScore) return "formal";
+  if (casualScore > formalScore) return "casual";
+  return "detailed";
+}
+
 /**
- * Compactify — compress raw interactions into a statistical profile.
+ * Compactify — compress raw interactions into a behavioral profile.
  *
- * This is the core Lineage concept: old experiences become signal,
- * not noise. The profile is what the AI reads, not the raw history.
+ * Feed it the user's interaction history. Get back a profile
+ * that tells the agent how to adapt to this specific user.
  */
 export function compactify(
   userId: string,
@@ -104,33 +137,33 @@ export function compactify(
 ): UserProfile {
   const window = interactions.slice(0, config.consolidation_window);
   const total = window.length;
-  const done = window.filter((i) => i.completed);
-  const abandoned = window.filter((i) => !i.completed);
-  const completionRate = total > 0 ? done.length / total : 0;
+  const accepted = window.filter((i) => i.accepted);
+  const rejected = window.filter((i) => !i.accepted);
+  const acceptanceRate = total > 0 ? accepted.length / total : 0;
 
-  // Duration analysis
-  const durations = done
-    .map((i) => i.duration_seconds ?? 0)
+  // Engagement analysis
+  const engagements = accepted
+    .map((i) => i.engagement_seconds ?? 0)
     .filter((d) => d > 0);
-  const avgDuration = durations.length > 0
-    ? Math.round(durations.reduce((a, b) => a + b, 0) / durations.length)
+  const avgEngagement = engagements.length > 0
+    ? Math.round(engagements.reduce((a, b) => a + b, 0) / engagements.length)
     : 0;
 
   // Topic extraction
-  const doneTexts = done.map((i) => i.output).filter(Boolean);
-  const abandonedTexts = abandoned.map((i) => i.output).filter(Boolean);
   const stops = config.stop_words ?? DEFAULT_STOPS;
-  const strong = topKeywords(doneTexts, 8, stops);
-  const weak = topKeywords(abandonedTexts, 8, stops);
+  const acceptedTexts = accepted.map((i) => `${i.input} ${i.output}`);
+  const rejectedTexts = rejected.map((i) => `${i.input} ${i.output}`);
+  const strong = topKeywords(acceptedTexts, 8, stops);
+  const weak = topKeywords(rejectedTexts, 8, stops);
 
   // Style detection
-  const signals = config.concrete_signals ?? DEFAULT_CONCRETE;
-  let concrete = 0;
-  let abstract = 0;
-  for (const text of doneTexts) {
-    const lower = text.toLowerCase();
-    if (signals.some((s) => lower.includes(s))) concrete++;
-    else abstract++;
+  const style = detectStyle(accepted, rejected);
+
+  // Channel distribution
+  const channels: Record<string, number> = {};
+  for (const i of window) {
+    const ch = i.channel || "unknown";
+    channels[ch] = (channels[ch] || 0) + 1;
   }
 
   // Time patterns
@@ -138,24 +171,25 @@ export function compactify(
   const activeHour = mostActiveHour(timestamps);
   const productiveHour = mostProductiveHour(window);
 
-  // Fitness — weighted: 40% overall, 60% recent 10
+  // Fitness — 40% overall, 60% recent 10
   const recent = window.slice(0, 10);
   const recentRate = recent.length > 0
-    ? recent.filter((i) => i.completed).length / recent.length
+    ? recent.filter((i) => i.accepted).length / recent.length
     : 0;
-  const fitness = Math.min(1, Math.max(0, completionRate * 0.4 + recentRate * 0.6));
+  const fitness = Math.min(1, Math.max(0, acceptanceRate * 0.4 + recentRate * 0.6));
 
   return {
     user_id: userId,
     total_interactions: total,
-    completed_interactions: done.length,
-    completion_rate: Math.round(completionRate * 100) / 100,
+    accepted_interactions: accepted.length,
+    acceptance_rate: Math.round(acceptanceRate * 100) / 100,
     strong_topics: strong,
     weak_topics: weak,
-    preferred_style: concrete >= abstract ? "concrete" : "abstract",
-    avg_duration_seconds: avgDuration,
+    preferred_style: style,
+    avg_engagement_seconds: avgEngagement,
     active_hour: activeHour,
     productive_hour: productiveHour,
+    channel_distribution: channels,
     fitness: Math.round(fitness * 100) / 100,
     version: (previousVersion ?? 0) + 1,
     updated_at: new Date().toISOString(),

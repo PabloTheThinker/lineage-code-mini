@@ -1,17 +1,24 @@
 /**
  * Lineage Code Mini
  *
- * Lightweight cognitive personalization engine.
- * Three concepts from the Lineage Engine, distilled for any app:
+ * Behavioral adaptation layer for AI agents.
+ * Three concepts from the Lineage Engine, distilled for any agent:
  *
- * 1. COMPACTIFY — compress interaction history into statistical profiles
- * 2. PATTERNS — cognitive frames that shape AI behavior per user
- * 3. WARMTH — ambient UI signals derived from user behavior
+ * 1. COMPACTIFY — compress interaction history into user profiles
+ * 2. PATTERNS — cognitive frames that shape agent behavior per user
+ * 3. AGENT — integration helpers for OpenClaw, custom agents, raw LLM calls
  *
- * Framework-agnostic. No runtime dependencies. Works in serverless.
+ * Framework-agnostic. Zero runtime dependencies. Works in serverless.
  *
- * Usage:
- *   import { compactify, personalize, computeWarmth } from 'lineage-code-mini'
+ * Quick start:
+ *   import { pipeline } from 'lineage-code-mini'
+ *   const { context, profile } = pipeline(userId, interactions, basePrompt)
+ *   // context.prompt is your adapted system message
+ *
+ * OpenClaw integration:
+ *   import { asSoulPatch } from 'lineage-code-mini'
+ *   const patch = asSoulPatch(profile)
+ *   // Append to SOUL.md or USER.md
  *
  * A Vektra Technologies project.
  * "I shall not fall. No more."
@@ -23,9 +30,10 @@ export type {
   UserProfile,
   CognitivePattern,
   LineageConfig,
+  AdaptationContext,
 } from "./types.js";
 
-// Compactification — experience → profile
+// Compactification — interactions → profile
 export {
   compactify,
   extractKeywords,
@@ -34,27 +42,19 @@ export {
   mostProductiveHour,
 } from "./compactify.js";
 
-// Cognitive patterns — profile → AI instructions
+// Cognitive patterns — profile → agent instructions
 export {
   BUILTIN_PATTERNS,
   route,
+  adapt,
   personalize,
 } from "./patterns.js";
 
-// Ambient warmth — profile → UI signals
-export type { WarmthColors } from "./warmth.js";
+// Agent integration — pipeline, OpenClaw helpers
 export {
-  computeWarmth,
-  getGreeting,
-  getMomentum,
-} from "./warmth.js";
-
-// ── Convenience: default config ──
-
-import type { LineageConfig } from "./types.js";
-
-export const DEFAULT_CONFIG: LineageConfig = {
-  min_interactions: 3,
-  consolidation_window: 100,
-  fitness_alarm: 0.35,
-};
+  DEFAULT_CONFIG,
+  pipeline,
+  asSoulPatch,
+  asSkillContext,
+  recordInteraction,
+} from "./agent.js";

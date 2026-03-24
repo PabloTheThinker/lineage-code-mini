@@ -1,46 +1,59 @@
 /**
  * Lineage Code Mini — Core Types
  *
- * Framework-agnostic. No runtime dependencies.
- * These types define the shape of a user's cognitive profile.
+ * Behavioral adaptation layer for AI agents.
+ * Framework-agnostic. Works with OpenClaw, custom agents, or any LLM wrapper.
+ * No runtime dependencies.
  */
 
-/** A single recorded interaction: input → AI output → user response */
+/** A single recorded interaction between user and agent */
 export interface Interaction {
   id: string;
+  /** What the user said/sent */
   input: string;
+  /** What the agent responded with */
   output: string;
+  /** Agent's reasoning for why it responded this way */
   reasoning?: string;
-  completed: boolean;
-  duration_seconds?: number;
+  /** Did the user accept/act on this response? */
+  accepted: boolean;
+  /** How long the user engaged with the response (seconds, optional) */
+  engagement_seconds?: number;
+  /** When this interaction happened */
   created_at: string;
+  /** Freeform tags for categorization */
   tags?: string[];
+  /** Which channel this came from (telegram, discord, web, etc.) */
+  channel?: string;
 }
 
-/** Compactified user profile — statistical summary of all interactions */
+/** Compactified user profile — how this specific user interacts with the agent */
 export interface UserProfile {
   user_id: string;
   total_interactions: number;
-  completed_interactions: number;
-  completion_rate: number;
+  accepted_interactions: number;
+  acceptance_rate: number;
 
-  /** Keywords that appear in completed interactions */
+  /** Topics the user engages with most */
   strong_topics: string[];
-  /** Keywords that appear in abandoned interactions */
+  /** Topics the user ignores or rejects */
   weak_topics: string[];
 
-  /** Preferred output style: 'concrete' | 'abstract' */
-  preferred_style: "concrete" | "abstract";
+  /** How the user prefers the agent to respond */
+  preferred_style: "direct" | "detailed" | "casual" | "formal";
 
-  /** Average interaction duration in seconds */
-  avg_duration_seconds: number;
+  /** Average engagement duration in seconds */
+  avg_engagement_seconds: number;
 
   /** Most active hour (0-23) */
   active_hour: number | null;
-  /** Hour with highest completion rate */
+  /** Hour with highest acceptance rate */
   productive_hour: number | null;
 
-  /** 0-1 score of how well current patterns are working */
+  /** Per-channel interaction counts */
+  channel_distribution: Record<string, number>;
+
+  /** 0-1 score — how well the agent is serving this user */
   fitness: number;
 
   /** Incremented each time the profile is reconsolidated */
@@ -49,12 +62,15 @@ export interface UserProfile {
   updated_at: string;
 }
 
-/** A cognitive pattern — a reasoning frame the AI can use */
+/** A cognitive pattern — a behavioral frame the agent can use */
 export interface CognitivePattern {
   name: string;
   description: string;
+  /** When should this pattern activate? */
   condition: (profile: UserProfile) => boolean;
+  /** What instruction does the agent get? */
   hint: (profile: UserProfile) => string;
+  /** Higher priority wins when multiple patterns match */
   priority: number;
 }
 
@@ -68,6 +84,16 @@ export interface LineageConfig {
   fitness_alarm: number;
   /** Stop words to exclude from keyword extraction */
   stop_words?: Set<string>;
-  /** Signals for concrete task style detection */
-  concrete_signals?: string[];
+}
+
+/** Agent adaptation context — injected into the agent's system prompt */
+export interface AdaptationContext {
+  /** The personalized system prompt */
+  prompt: string;
+  /** Active pattern names for logging/debugging */
+  active_patterns: string[];
+  /** Current fitness score */
+  fitness: number;
+  /** Whether personalization is active (enough data) */
+  personalized: boolean;
 }
