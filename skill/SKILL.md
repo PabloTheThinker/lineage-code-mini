@@ -1,6 +1,7 @@
 ---
 name: lineage-mini
-description: "Behavioral adaptation for AI agents. Learns how each user prefers to be talked to — response style, topics, timing, self-correction. Use this skill when you want your agent to adapt its responses based on conversation history. Triggers on: /lineage, /adapt, /profile, or when the agent needs to personalize responses."
+version: 0.1.1
+description: "Behavioral adaptation for AI agents. Builds a lightweight user profile from interaction history and adapts response style, topic focus, timing, and recovery when replies stop landing."
 user-invocable: true
 metadata: {"openclaw": {"emoji": "🧬", "requires": {"bins": ["node"]}}}
 ---
@@ -22,11 +23,11 @@ You have access to `lineage-code-mini`, a behavioral adaptation engine. It learn
 Run the adaptation pipeline on the current user's conversation history:
 
 ```bash
-node -e "
-const { compactify, DEFAULT_CONFIG } = require('lineage-code-mini');
-const fs = require('fs');
+node --input-type=module -e "
+import { compactify, DEFAULT_CONFIG } from 'lineage-code-mini';
+import { existsSync, readFileSync } from 'node:fs';
 const historyPath = '{baseDir}/data/interactions.json';
-const history = fs.existsSync(historyPath) ? JSON.parse(fs.readFileSync(historyPath, 'utf8')) : [];
+const history = existsSync(historyPath) ? JSON.parse(readFileSync(historyPath, 'utf8')) : [];
 const profile = compactify('current-user', history, DEFAULT_CONFIG);
 console.log(JSON.stringify(profile, null, 2));
 "
@@ -35,11 +36,11 @@ console.log(JSON.stringify(profile, null, 2));
 ### `/adapt` — Generate behavioral hints for the current user
 
 ```bash
-node -e "
-const { pipeline } = require('lineage-code-mini');
-const fs = require('fs');
+node --input-type=module -e "
+import { pipeline } from 'lineage-code-mini';
+import { existsSync, readFileSync } from 'node:fs';
 const historyPath = '{baseDir}/data/interactions.json';
-const history = fs.existsSync(historyPath) ? JSON.parse(fs.readFileSync(historyPath, 'utf8')) : [];
+const history = existsSync(historyPath) ? JSON.parse(readFileSync(historyPath, 'utf8')) : [];
 const basePrompt = 'You are a helpful AI assistant.';
 const { context, profile } = pipeline('current-user', history, basePrompt);
 console.log('Active patterns:', context.active_patterns);
@@ -51,6 +52,8 @@ console.log(context.prompt);
 ```
 
 ## Automatic Adaptation
+
+This skill provides the commands and storage layout. Your host agent still needs to call these commands or wire recording into its turn loop. Installation alone does not automatically capture conversations.
 
 When this skill is loaded, you should:
 
@@ -79,11 +82,11 @@ When this skill is loaded, you should:
 Generate a section for your SOUL.md or USER.md:
 
 ```bash
-node -e "
-const { compactify, asSoulPatch, DEFAULT_CONFIG } = require('lineage-code-mini');
-const fs = require('fs');
+node --input-type=module -e "
+import { compactify, asSoulPatch, DEFAULT_CONFIG } from 'lineage-code-mini';
+import { existsSync, readFileSync } from 'node:fs';
 const historyPath = '{baseDir}/data/interactions.json';
-const history = fs.existsSync(historyPath) ? JSON.parse(fs.readFileSync(historyPath, 'utf8')) : [];
+const history = existsSync(historyPath) ? JSON.parse(readFileSync(historyPath, 'utf8')) : [];
 const profile = compactify('current-user', history, DEFAULT_CONFIG);
 console.log(asSoulPatch(profile));
 "

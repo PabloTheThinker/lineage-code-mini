@@ -12,6 +12,18 @@ Three concepts from the [Lineage Engine](https://github.com/PabloTheThinker), di
 npm install lineage-code-mini
 ```
 
+ESM:
+
+```js
+import { pipeline } from 'lineage-code-mini'
+```
+
+CommonJS:
+
+```js
+const { pipeline } = require('lineage-code-mini')
+```
+
 ## Quick Start
 
 ```typescript

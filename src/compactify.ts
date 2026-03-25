@@ -135,7 +135,14 @@ export function compactify(
   config: LineageConfig,
   previousVersion?: number
 ): UserProfile {
-  const window = interactions.slice(0, config.consolidation_window);
+  // Normalize to chronological order so "recent" means newest by timestamp,
+  // regardless of how the caller accumulated the interaction array.
+  const sorted = [...interactions].sort((a, b) => {
+    const aTime = new Date(a.created_at).getTime();
+    const bTime = new Date(b.created_at).getTime();
+    return aTime - bTime;
+  });
+  const window = sorted.slice(-config.consolidation_window);
   const total = window.length;
   const accepted = window.filter((i) => i.accepted);
   const rejected = window.filter((i) => !i.accepted);
@@ -172,7 +179,7 @@ export function compactify(
   const productiveHour = mostProductiveHour(window);
 
   // Fitness — 40% overall, 60% recent 10
-  const recent = window.slice(0, 10);
+  const recent = window.slice(-10);
   const recentRate = recent.length > 0
     ? recent.filter((i) => i.accepted).length / recent.length
     : 0;

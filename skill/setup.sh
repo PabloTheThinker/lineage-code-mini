@@ -15,7 +15,7 @@ if [ ! -f "$DATA_DIR/interactions.json" ]; then
 fi
 
 # Check if lineage-code-mini is installed
-if ! node -e "require('lineage-code-mini')" 2>/dev/null; then
+if ! node --input-type=module -e "await import('lineage-code-mini')" 2>/dev/null; then
   echo "Installing lineage-code-mini..."
   npm install -g lineage-code-mini
 fi
