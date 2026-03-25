@@ -6,10 +6,22 @@ Without it, every conversation starts cold — same tone, same length, same assu
 
 Three concepts from the [Lineage Engine](https://github.com/PabloTheThinker), distilled into a zero-dependency TypeScript library that works anywhere.
 
+## Links
+
+- GitHub: https://github.com/PabloTheThinker/lineage-code-mini
+- npm: https://www.npmjs.com/package/lineage-code-mini
+- ClawHub skill: https://clawhub.ai/pablothethinker/lineage-mini
+
 ## Install
 
 ```bash
 npm install lineage-code-mini
+```
+
+OpenClaw / ClawHub:
+
+```bash
+npx clawhub@latest install lineage-mini
 ```
 
 ESM:
@@ -113,6 +125,8 @@ const context = adapt(basePrompt, profile)
 ```
 
 ## OpenClaw Integration
+
+Live skill listing: https://clawhub.ai/pablothethinker/lineage-mini
 
 Generate a section for your agent's `SOUL.md` or `USER.md`:
 

@@ -10,6 +10,12 @@ metadata: {"openclaw": {"emoji": "🧬", "requires": {"bins": ["node"]}}}
 
 You have access to `lineage-code-mini`, a behavioral adaptation engine. It learns how each user likes to be talked to and adapts your responses accordingly.
 
+## Links
+
+- GitHub source: https://github.com/PabloTheThinker/lineage-code-mini
+- npm package: https://www.npmjs.com/package/lineage-code-mini
+- ClawHub listing: https://clawhub.ai/pablothethinker/lineage-mini
+
 ## How It Works
 
 1. **Record** — after each conversation, record whether the user engaged positively
