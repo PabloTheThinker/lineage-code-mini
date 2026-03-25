@@ -101,9 +101,11 @@ function detectStyle(
     : 0;
 
   // If accepted responses are significantly shorter than rejected ones,
-  // user prefers direct/short answers
+  // user prefers direct/short answers. Also handle the common case where
+  // there are few or no rejected examples by using an absolute shortness cutoff.
   const prefersShort = acceptedAvgLen > 0 && rejectedAvgLen > 0
     && acceptedAvgLen < rejectedAvgLen * 0.7;
+  const acceptedIsShort = acceptedAvgLen > 0 && acceptedAvgLen <= 120;
 
   // Check for casual markers in accepted outputs
   const casualMarkers = ["hey", "haha", "lol", "yeah", "nah", "cool", "btw"];
@@ -117,7 +119,7 @@ function detectStyle(
     formalMarkers.forEach((m) => { if (lower.includes(m)) formalScore++; });
   }
 
-  if (prefersShort) return "direct";
+  if (prefersShort || acceptedIsShort) return "direct";
   if (formalScore > casualScore) return "formal";
   if (casualScore > formalScore) return "casual";
   return "detailed";

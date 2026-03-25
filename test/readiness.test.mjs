@@ -61,3 +61,31 @@ test("compactify uses the latest interactions by timestamp", () => {
   assert.equal(profile.fitness, 0);
   assert.ok(profile.weak_topics.includes("latest") || profile.weak_topics.includes("newer"));
 });
+
+test("compactify classifies consistently short accepted outputs as direct", () => {
+  const profile = compactify("u3", [
+    {
+      id: "1",
+      input: "deploy?",
+      output: "Run npm publish.",
+      accepted: true,
+      created_at: "2026-01-01T10:00:00.000Z",
+    },
+    {
+      id: "2",
+      input: "shorter",
+      output: "Done.",
+      accepted: true,
+      created_at: "2026-01-02T10:00:00.000Z",
+    },
+    {
+      id: "3",
+      input: "thanks",
+      output: "Welcome.",
+      accepted: true,
+      created_at: "2026-01-03T10:00:00.000Z",
+    },
+  ], DEFAULT_CONFIG);
+
+  assert.equal(profile.preferred_style, "direct");
+});
