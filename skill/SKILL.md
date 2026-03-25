@@ -1,6 +1,6 @@
 ---
 name: lineage-mini
-version: 0.1.2
+version: 0.1.3
 description: "Behavioral adaptation for AI agents. Builds a lightweight user profile from interaction history and adapts response style, topic focus, timing, and recovery when replies stop landing."
 user-invocable: true
 metadata: {"openclaw": {"emoji": "🧬", "requires": {"bins": ["node"]}}}

@@ -4,7 +4,7 @@ Behavioral adaptation layer for AI agents. Your agent learns how each user likes
 
 Without it, every conversation starts cold — same tone, same length, same assumptions. With it, the agent adapts: response style, topic selection, timing awareness, and self-correction when its approach stops working.
 
-Three concepts from the [Lineage Engine](https://github.com/PabloTheThinker), distilled into a zero-dependency TypeScript library that works anywhere.
+Three concepts from the [Lineage Engine](https://github.com/PabloTheThinker), distilled into a zero-dependency TypeScript library for AI agents.
 
 ## Links
 
@@ -35,6 +35,12 @@ CommonJS:
 ```js
 const { pipeline } = require('lineage-code-mini')
 ```
+
+## Compatibility
+
+The core library works in Node, Bun, browser bundles, and serverless runtimes.
+Deno should be possible but is not currently verified.
+The shipped OpenClaw / ClawHub skill requires Node.
 
 ## Quick Start
 
@@ -222,7 +228,7 @@ import { DEFAULT_CONFIG } from 'lineage-code-mini'
 
 ## Design Principles
 
-- **Zero dependencies.** Pure TypeScript. Works in Node, Deno, Bun, browsers, serverless.
+- **Zero dependencies.** Pure TypeScript. The core library works in Node, Bun, browser bundles, and serverless runtimes. Deno is plausible but unverified. The shipped ClawHub skill requires Node.
 - **Framework-agnostic.** Not tied to any LLM provider, agent framework, or database.
 - **Privacy-first.** Profiles are computed locally. No data leaves your system.
 - **Invisible to users.** They don't configure anything. They just notice the agent gets better.

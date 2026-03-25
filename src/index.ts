@@ -8,7 +8,9 @@
  * 2. PATTERNS — cognitive frames that shape agent behavior per user
  * 3. AGENT — integration helpers for OpenClaw, custom agents, raw LLM calls
  *
- * Framework-agnostic. Zero runtime dependencies. Works in serverless.
+ * Framework-agnostic. Zero runtime dependencies.
+ * Core library is intended for Node, Bun, browser bundles, and serverless runtimes.
+ * The shipped OpenClaw skill requires Node.
  *
  * Quick start:
  *   import { pipeline } from 'lineage-code-mini'
