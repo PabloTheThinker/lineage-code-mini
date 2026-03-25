@@ -1,10 +1,12 @@
 # Lineage Code Mini
 
-Behavioral adaptation layer for AI agents. Your agent learns how each user likes to be talked to.
+Behavioral adaptation layer for AI agents. It helps an agent learn how each user likes to be talked to.
 
 Without it, every conversation starts cold — same tone, same length, same assumptions. With it, the agent adapts: response style, topic selection, timing awareness, and self-correction when its approach stops working.
 
 Three concepts from the [Lineage Engine](https://github.com/PabloTheThinker), distilled into a zero-dependency TypeScript library for AI agents.
+
+This package is designed for agent builders and OpenClaw users who want manual control over when adaptation runs. It provides the profile logic, prompt adaptation, and skill workflow. Your host agent or integration decides when to record interactions, compactify history, and apply the resulting context.
 
 ## Links
 
@@ -41,6 +43,13 @@ const { pipeline } = require('lineage-code-mini')
 The core library works in Node, Bun, browser bundles, and serverless runtimes.
 Deno should be possible but is not currently verified.
 The shipped OpenClaw / ClawHub skill requires Node.
+
+## Product Boundary
+
+- This is a manual-use library and skill, not an automatic conversation-loop hook.
+- OpenClaw users can install the skill and follow its documented workflow.
+- Other AI agent builders can install the npm package and wire it into their own agent loop.
+- The package does not self-attach to an agent. The user or builder chooses when to use it.
 
 ## Quick Start
 
@@ -133,6 +142,8 @@ const context = adapt(basePrompt, profile)
 ## OpenClaw Integration
 
 Live skill listing: https://clawhub.ai/pablothethinker/lineage-mini
+
+The OpenClaw skill is intended to be installed and used explicitly by the host agent. It provides commands, storage layout, and adaptation logic, but it does not silently wire itself into every conversation.
 
 Generate a section for your agent's `SOUL.md` or `USER.md`:
 
